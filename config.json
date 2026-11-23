@@ -1,0 +1,8 @@
+{
+  "bale_bot_token": "1995634742:SGxqlkJGBqV9sgF_riEBWO2AoTolQjW2sfc",
+  "bale_chat_id": "982652546",
+  "bale_enabled": true
+  "min_score_to_notify": 45,
+  "notify_signals": ["خرید قوی", "فروش قوی"],
+  "poll_interval_seconds": 30
+}

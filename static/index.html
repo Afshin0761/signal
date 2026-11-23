@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Faran Signal Bot 1.2</title>
+<style>
+:root{--bg:#09111a;--panel:#111d29;--line:#26394a;--txt:#e7eef6;--muted:#92a5b8;--green:#20c982;--red:#f05d68;--yellow:#e7b653;--blue:#65adff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#17354a 0,transparent 34%),var(--bg);color:var(--txt);font:13px Tahoma,Arial,sans-serif}.app{max-width:1500px;margin:auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}.brand{display:flex;gap:12px;align-items:center}.logo{background:linear-gradient(135deg,#1bc785,#157c9b);color:#041810;font-size:21px;font-weight:bold;border-radius:13px;width:45px;height:45px;display:grid;place-items:center}.brand h1{font-size:18px;margin:0 0 5px}.muted,small{color:var(--muted)}.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.badge,.btn,input,select{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#101c28;color:var(--txt)}.badge{font-size:11px}.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}.btn{cursor:pointer}.btn.primary{background:#147a58;border-color:#19875f}.btn.tg{background:#1a6aa8;border-color:#1d7abf}.notice{padding:11px 14px;border:1px solid #725a2b;background:#3a2d183d;color:#f2d79f;border-radius:10px;line-height:1.9;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px}.card{background:linear-gradient(145deg,#142331,#101923);border:1px solid var(--line);border-radius:13px;padding:15px;box-shadow:0 10px 30px #0003}.klabel{color:var(--muted);font-size:11px}.kvalue{font-size:20px;font-weight:bold;margin:8px 0 4px;direction:ltr;text-align:right}.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:14px}@media(max-width:900px){.layout{grid-template-columns:1fr}}.panel{margin-bottom:14px}.head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px;flex-wrap:wrap}.head h2{font-size:14px;margin:0}.filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}input{min-width:160px;flex:1}table{border-collapse:collapse;width:100%;white-space:nowrap}th,td{text-align:right;padding:10px 8px;border-bottom:1px solid #223342}th{color:var(--muted);font-weight:normal;font-size:11px;background:#0d1822}tbody tr:hover{background:#ffffff09;cursor:pointer}.scroll{overflow:auto;max-height:62vh}.tag{padding:4px 8px;border-radius:20px;font-size:11px;font-weight:bold}.tag-buy-strong{background:#0d3d2a;color:#3dffb0}.tag-buy{background:#1c392f;color:#78e2b5}.tag-neutral{background:#2a3340;color:#a8b8c8}.tag-sell{background:#3a2228;color:#f0a0a8}.tag-sell-strong{background:#4a1520;color:#ff6b7a}.line{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #1c2c3a}.line span{color:var(--muted)}.empty{text-align:center;padding:30px;color:var(--muted)}.reasons{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.7}
+</style></head><body>
+<div class="app">
+<header>
+  <div class="brand">
+    <div class="logo">F</div>
+    <div>
+      <h1>Faran Signal Bot <small>v1.2</small></h1>
+      <div class="muted" id="statusLine">در حال اتصال...</div>
+    </div>
+  </div>
+  <div class="controls">
+    <span class="badge" id="baleBadge">بله: خاموش</span>
+    <button class="btn" id="refresh">↻ دریافت مجدد</button>
+    <button class="btn bale" id="baleTest">تست بله</button>
+  </div>
+</header>
+
+<div class="notice">
+  این ربات فقط <b>سیگنال تحلیلی</b> تولید می‌کند و هیچ سفارش معاملاتی ارسال نمی‌کند.
+  سیگنال‌ها بر اساس snapshot لحظه‌ای TSETMC هستند و توصیه قطعی خرید/فروش نیستند.
+</div>
+
+<div class="grid" id="summaryCards"></div>
+
+<div class="layout">
+  <div class="panel card">
+    <div class="head">
+      <h2>نمادها و سیگنال‌ها</h2>
+      <span class="muted" id="countLabel"></span>
+    </div>
+    <div class="filters">
+      <input id="q" placeholder="جستجوی نماد یا نام...">
+      <select id="filter">
+        <option value="all">همه سیگنال‌ها</option>
+        <option value="خرید قوی">خرید قوی</option>
+        <option value="خرید">خرید</option>
+        <option value="خنثی">خنثی</option>
+        <option value="فروش">فروش</option>
+        <option value="فروش قوی">فروش قوی</option>
+      </select>
+      <select id="sort">
+        <option value="score">مرتب‌سازی: امتیاز</option>
+        <option value="value">ارزش معاملات</option>
+        <option value="volume">حجم</option>
+        <option value="change">تغییر درصدی</option>
+      </select>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>نماد</th><th>آخرین</th><th>تغییر</th><th>حجم</th><th>ارزش</th><th>سیگنال</th><th>امتیاز</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel card">
+    <div class="head"><h2>جزئیات</h2><span class="muted" id="sel">—</span></div>
+    <div id="detail" class="muted">یک نماد را انتخاب کنید.</div>
+  </div>
+</div>
+</div>
+
+<script>
+const fa=n=>n==null?'—':Number(n).toLocaleString('fa-IR');
+const compact=n=>{if(n==null)return'—';const v=Number(n);if(v>=1e9)return(v/1e9).toFixed(1)+'B';if(v>=1e6)return(v/1e6).toFixed(1)+'M';return fa(v)};
+const signalClass=s=>({
+  'خرید قوی':'tag-buy-strong','خرید':'tag-buy','خنثی':'tag-neutral','فروش':'tag-sell','فروش قوی':'tag-sell-strong'
+}[s]||'tag-neutral');
+
+let all=[],selected=null;
+
+async function load(){
+  try{
+    const r=await fetch('/api/market');
+    const d=await r.json();
+    all=d.symbols||[];
+    const st=d.status==='connected'?'🟢 متصل':d.status==='error'?'🔴 خطا':'🟡 در حال شروع';
+    document.getElementById('statusLine').textContent=`${st} | به‌روزرسانی: ${d.updated_at||'—'} | تعداد: ${d.count||0}`;
+    document.getElementById('baleBadge').textContent=d.bale_enabled?'بله: فعال':'بله: خاموش';
+    document.getElementById('baleBadge').className='badge '+(d.bale_enabled?'good':'');
+    const s=d.signals_summary||{};
+    document.getElementById('summaryCards').innerHTML=`
+      <div class="card"><div class="klabel">خرید قوی</div><div class="kvalue good">${s['خرید قوی']||0}</div></div>
+      <div class="card"><div class="klabel">خرید</div><div class="kvalue good">${s['خرید']||0}</div></div>
+      <div class="card"><div class="klabel">خنثی</div><div class="kvalue">${s['خنثی']||0}</div></div>
+      <div class="card"><div class="klabel">فروش</div><div class="kvalue bad">${s['فروش']||0}</div></div>
+      <div class="card"><div class="klabel">فروش قوی</div><div class="kvalue bad">${s['فروش قوی']||0}</div></div>
+      <div class="card"><div class="klabel">شاخص</div><div class="kvalue">${d.market&&d.market.index?fa(d.market.index):'—'}</div></div>`;
+    render();
+    if(selected) show(selected);
+  }catch(e){
+    document.getElementById('statusLine').textContent='خطا در دریافت داده';
+  }
+}
+
+function render(){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const f=document.getElementById('filter').value;
+  const s=document.getElementById('sort').value;
+  let a=all.filter(x=>(x.symbol+' '+x.name).toLowerCase().includes(q)&&(f==='all'||x.signal===f));
+  a.sort((x,y)=>s==='value'?y.value-x.value:s==='volume'?y.volume-x.volume:s==='change'?y.change_pct-x.change_pct:y.score-x.score);
+  document.getElementById('countLabel').textContent=a.length+' نماد';
+  document.getElementById('rows').innerHTML=a.slice(0,400).map(x=>`<tr data-id="${x.ins_code}">
+    <td><b>${x.symbol}</b><div style="font-size:10px;color:#91a5b8;margin-top:3px">${x.name||''}</div></td>
+    <td>${fa(x.last)}</td>
+    <td class="${x.change_pct>=0?'good':'bad'}" dir="ltr">${x.change_pct>=0?'+':''}${fa(x.change_pct)}٪</td>
+    <td>${compact(x.volume)}</td>
+    <td>${compact(x.value)}</td>
+    <td><span class="tag ${signalClass(x.signal)}">${x.signal||'—'}</span></td>
+    <td><b class="${x.score>=70?'good':x.score>=50?'warn':'bad'}">${fa(x.score)}</b></td>
+  </tr>`).join('')||'<tr><td colspan="7" class="empty">نتیجه‌ای پیدا نشد.</td></tr>';
+  document.querySelectorAll('#rows tr[data-id]').forEach(tr=>tr.onclick=()=>show(tr.dataset.id));
+}
+
+function show(id){
+  const x=all.find(z=>z.ins_code===id);
+  if(!x)return;
+  selected=id;
+  document.getElementById('sel').textContent=x.symbol;
+  const reasons=(x.reasons||[]).map(r=>`• ${r}`).join('<br>')||'—';
+  document.getElementById('detail').innerHTML=`
+    <div class="line"><span>سیگنال</span><b><span class="tag ${signalClass(x.signal)}">${x.signal}</span></b></div>
+    <div class="line"><span>امتیاز</span><b>${fa(x.score)} / ۱۰۰</b></div>
+    <div class="line"><span>نام شرکت</span><b>${x.name||'—'}</b></div>
+    <div class="line"><span>آخرین قیمت (ریال)</span><b>${fa(x.last)}</b></div>
+    <div class="line"><span>قیمت پایانی</span><b>${fa(x.close)}</b></div>
+    <div class="line"><span>تغییر</span><b class="${x.change_pct>=0?'good':'bad'}" dir="ltr">${x.change_pct>=0?'+':''}${fa(x.change_pct)}٪</b></div>
+    <div class="line"><span>بیشترین / کمترین</span><b>${fa(x.high)} / ${fa(x.low)}</b></div>
+    <div class="line"><span>تعداد معاملات</span><b>${fa(x.trades)}</b></div>
+    <div class="line"><span>حجم</span><b>${compact(x.volume)}</b></div>
+    <div class="line"><span>ارزش معاملات</span><b>${compact(x.value)}</b></div>
+    <div class="line"><span>حجم مبنا</span><b>${fa(x.base_volume)}</b></div>
+    <div style="margin-top:14px"><div class="klabel">دلایل سیگنال</div><div class="reasons">${reasons}</div></div>
+    <p class="muted" style="margin-top:14px;font-size:11px">این امتیاز فقط غربالگری لحظه‌ای است و تأیید سیگنال نهایی یا توصیه سرمایه‌گذاری نیست.</p>`;
+}
+
+document.getElementById('q').oninput=render;
+document.getElementById('filter').onchange=render;
+document.getElementById('sort').onchange=render;
+document.getElementById('refresh').onclick=async()=>{
+  document.getElementById('refresh').textContent='در حال دریافت…';
+  try{await fetch('/api/refresh',{method:'POST'});}catch(e){}
+  await load();
+  document.getElementById('refresh').textContent='↻ دریافت مجدد';
+};
+document.getElementById('baleTest').onclick=async()=>{
+  const r=await fetch('/api/bale/test',{method:'POST'});
+  const d=await r.json();
+  alert(d.message||(d.ok?'ارسال شد':'خطا'));
+};
+
+load();
+setInterval(load,30000);
+</script></body></html>
